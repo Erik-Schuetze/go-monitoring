@@ -1,0 +1,3 @@
+influx_url: "http://pi1.local:8086"
+influx_org: "homelab"
+influx_bucket: "go-monitoring"
