@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime"
 	"time"
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
 	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/host"
+	"github.com/shirou/gopsutil/load"
 	"github.com/shirou/gopsutil/mem"
 	"gopkg.in/yaml.v3"
 )
@@ -33,6 +34,20 @@ func main() {
 
 func getMainStats() map[string]interface{} {
 	mainStats := make(map[string]interface{})
+
+	hostInfo, err := host.Info()
+	if err != nil {
+		log.Fatal("Error getting host info:", err)
+	}
+	mainStats["uptime"] = hostInfo.Uptime
+
+	loadInfo, err := load.Avg()
+	if err != nil {
+		log.Fatal("Error getting CPU load average:", err)
+	}
+	mainStats["load_avg_1"] = loadInfo.Load1
+	mainStats["load_avg_5"] = loadInfo.Load5
+	mainStats["load_avg_15"] = loadInfo.Load15
 
 	cpuCoreCount, err := cpu.Counts(true)
 	if err != nil {
@@ -67,15 +82,18 @@ func getMainStats() map[string]interface{} {
 }
 
 func generateTags() map[string]string {
-	hostname, err := os.Hostname()
+	info, err := host.Info()
 	if err != nil {
 		fmt.Println(err)
 	}
 
 	tags := map[string]string{
-		"hostname":  hostname,
-		"host_os":   runtime.GOOS,
-		"host_arch": runtime.GOARCH,
+		"hostname":             info.Hostname,
+		"host_os":              info.OS,
+		"host_platform":        info.Platform,
+		"host_platform_family": info.PlatformFamily,
+		"host_id":              info.HostID,
+		"host_arch":            info.KernelArch,
 	}
 	return tags
 }
