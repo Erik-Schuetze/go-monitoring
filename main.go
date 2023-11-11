@@ -59,7 +59,7 @@ func getMainStats() map[string]interface{} {
 	if err != nil {
 		log.Fatal("Error getting CPU usage:", err)
 	}
-	mainStats["cpu_usage_percent"] = cpuPercent
+	mainStats["cpu_usage_percent"] = cpuPercent[0]
 
 	cpuPercentages, err := cpu.Percent(time.Second, true)
 	if err != nil {
