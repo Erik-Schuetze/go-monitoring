@@ -51,7 +51,7 @@ func getMainStats() map[string]interface{} {
 		log.Fatal("Error getting individual CPU percentages:", err)
 	}
 	for id, value := range cpuPercentages {
-		label := fmt.Sprintf("cpu_%s_usage_percent", id)
+		label := fmt.Sprintf("cpu_%d_usage_percent", id)
 		mainStats[label] = value
 	}
 
