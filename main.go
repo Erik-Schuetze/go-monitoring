@@ -10,6 +10,8 @@ import (
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api/write"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 	"gopkg.in/yaml.v3"
 )
 
@@ -22,12 +24,46 @@ type Config struct {
 func main() {
 	config := new(Config).getConf("config.yaml")
 	tags := generateTags()
-	fields := make(map[string]interface{})
+	fields := getMainStats()
 
-	fields["test_value"] = 1
 	point := write.NewPoint("monitoring-dev", tags, fields, time.Now())
 
 	writeToInflux(config, point)
+}
+
+func getMainStats() map[string]interface{} {
+	mainStats := make(map[string]interface{})
+
+	cpuCoreCount, err := cpu.Counts(true)
+	if err != nil {
+		log.Fatal("Error getting CPU count:", err)
+	}
+	mainStats["cpu_core_count"] = cpuCoreCount
+
+	cpuPercent, err := cpu.Percent(time.Second, false)
+	if err != nil {
+		log.Fatal("Error getting CPU usage:", err)
+	}
+	mainStats["cpu_usage_percent"] = cpuPercent
+
+	cpuPercentages, err := cpu.Percent(time.Second, true)
+	if err != nil {
+		log.Fatal("Error getting individual CPU percentages:", err)
+	}
+	for id, value := range cpuPercentages {
+		label := fmt.Sprintf("cpu_%s_usage_percent", id)
+		mainStats[label] = value
+	}
+
+	vmem, err := mem.VirtualMemory()
+	if err != nil {
+		log.Fatal("Error getting virtual memory", err)
+	}
+	mainStats["virtual_memory_total"] = vmem.Total
+	mainStats["virtual_memory_used"] = vmem.Used
+	mainStats["virtual_memory_free"] = vmem.Free
+
+	return mainStats
 }
 
 func generateTags() map[string]string {
