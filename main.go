@@ -17,9 +17,12 @@ import (
 )
 
 type Config struct {
-	InfluxURL    string `yaml:"influx_url"`
-	InfluxOrg    string `yaml:"influx_org"`
-	InfluxBucket string `yaml:"influx_bucket"`
+	Influx struct {
+		InfluxURL      string `yaml:"influx_url"`
+		InfluxOrg      string `yaml:"influx_org"`
+		InfluxBucket   string `yaml:"influx_bucket"`
+		InfluxApiToken string `yaml:"influx_api_token"`
+	}
 }
 
 func main() {
@@ -109,10 +112,10 @@ func (config *Config) getConf(filePath string) *Config {
 }
 
 func writeToInflux(config *Config, point *write.Point) {
-	client := influxdb2.NewClient(config.InfluxURL, os.Getenv("INFLUXDB_TOKEN"))
+	client := influxdb2.NewClient(config.Influx.InfluxURL, config.Influx.InfluxApiToken)
 
-	org := config.InfluxOrg
-	bucket := config.InfluxBucket
+	org := config.Influx.InfluxOrg
+	bucket := config.Influx.InfluxBucket
 
 	writeAPI := client.WriteAPIBlocking(org, bucket)
 
