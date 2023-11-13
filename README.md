@@ -1,3 +1,13 @@
 # go-monitoring
 
-this repo will be used to monitor my local homelab and export data to an influxdb
+This Go script can be used to collect some system metrics and push them to an InfluxDB
+just enter your values into the config.yaml and run the script.
+
+## usage
+
+```
+cd go-monitoring
+go build .
+./go-monitoring
+```
+
